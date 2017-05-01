@@ -32,17 +32,35 @@ function callTrello(username) {
 
 function filterProjects(boards) {
   var activeBoards = [];
+  var tags = {};
   for (var i in boards) {
     let board = boards[i];
     if (!board.closed && board.name !== "Welcome Board") {
       activeBoards.push(board);
+      getTags(board, tags);
     }
   }
   let returnObj = {
-    project: selectProject(activeBoards),
-    boards: activeBoards
+    boards: activeBoards,
+    tags: tags
   };
   return returnObj;
+}
+
+function getTags(board, tags) {
+  let j = 0;
+  for (var i in board.labelNames) {
+    let tag = board.labelNames[i];
+    if (tag !== "") {
+      (tags[tag]) ? tags[tag].boards.push(board) : tags[tag] = {boards: [board], color: selectColor(j)};
+      j++;
+    }
+  }
+}
+
+function selectColor(i){
+  let colors = ['#d73027','#f46d43','#fdae61','#fee090','#ffffbf','#e0f3f8','#abd9e9','#74add1','#4575b4'];
+  return colors[i];
 }
 
 function selectProject(boards) {
@@ -55,7 +73,7 @@ class App extends React.Component {
     super();
     this.state = {
       boards: [],
-      tags: [],
+      tags: {},
       project: {}
     }
   }
@@ -63,20 +81,28 @@ class App extends React.Component {
   handleInput() {
     let username = document.getElementById('username-input').value;
     callTrello(username).then((response) => {
-      console.log(response);
       this.setState({
         project: response.project,
-        boards: response.boards
+        boards: response.boards,
+        tags: response.tags,
+        activeTag: {},
+        rejected: []
       });
-      console.log(this.state);
     }, (error) => {
       console.log(error);
     });
   }
 
+  getProject(tag, boards) {
+    this.setState({
+      project: selectProject(boards),
+      activeTag: tag
+    });
+  }
+
   differentSelection() {
-    let project = selectProject(this.state.boards);
-    console.log(project);
+    let rejected = this.state.rejected.push(this.state.project);
+    let project = selectProject(this.state.tags[this.state.activeTag].boards);
     this.setState({
       project: project
     });
@@ -99,6 +125,20 @@ class App extends React.Component {
           <br />
           <input type="button" className="btn btn-success button-margin" id="get-projects-button" value="Get my Projects" onClick={() => this.handleInput()}/>
         </form>
+
+        {!isEmpty(this.state.tags) &&
+          <div className="tag-container">
+            <p> Select a technology you would like to focus on/work with. </p>
+            {Object.keys(this.state.tags).map((tag) =>
+              <Tag 
+                tagName={tag} 
+                count={this.state.tags[tag].boards.length} 
+                color={this.state.tags[tag].color}
+                onClick={() => this.getProject(tag, this.state.tags[tag].boards)}
+                />
+            )}
+          </div>
+        }
 
         {projectSelected &&
           <div className="selected-block"> 
@@ -125,4 +165,50 @@ class Card extends React.Component {
   }
 }
 
-ReactDOM.render(React.createElement(App), document.getElementById('app'), null);
+class Tag extends React.Component {
+  render() {
+    const tagName = this.props.tagName;
+    const count = this.props.count;
+    const style = {'backgroundColor': this.props.color};
+
+    return (
+      <button className="btn" style={style} onClick={() => this.props.onClick()}>
+        {tagName}<span className="badge">{count}</span>
+      </button>
+    );
+  }
+}
+
+class Nav extends React.Component {
+  render() {
+    return (
+      <div>
+        <nav className="navbar sticky-top navbar-top navbar-toggleable-md navbar-inverse bg-inverse">
+          <div className="navbar-header page-scroll">
+            <button type="button" className="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+              <span className="sr-only">Toggle navigation</span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+              <span className="icon-bar"></span>
+            </button>
+          </div>
+
+          <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul className="nav navbar-nav navbar-right">
+              <li className="page-scroll">
+                <a href="#browse">Browse</a>
+              </li>
+              <li className="page-scroll">
+                <a href="#select">Select For Me</a>
+              </li>
+            </ul>
+          </div>
+        </nav>
+
+        <App />
+      </div>
+    )
+  }
+}
+
+ReactDOM.render(React.createElement(Nav), document.getElementById('nav'), null);

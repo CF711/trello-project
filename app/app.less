@@ -1,5 +1,14 @@
 @fonts: "Roboto, Noto, Sans-serif";
 
+body {
+  background-color: dimgray;
+  color: #1A1A1A;
+}
+
+.input-group {
+
+}
+
 .App {
   text-align: center;
   font-family: @fonts;
@@ -16,10 +25,6 @@
   margin: 5px;
 }
 
-#get-projects-button {
-
-}
-
 .card {
   box-shadow: 5px 5px 10px #888888;
 }
@@ -34,4 +39,21 @@
 
 .selected-block {
   margin-top: 20px;
+}
+
+.tag-container {
+  margin-top: 20px;
+  button {
+    border: 1px solid black;
+    margin: 5px;
+    color: black;
+    font-weight: bold;
+  }
+
+  .badge {
+    border: 1px solid black;
+    background-color: white;
+    color: black;
+    margin-left: 5px;
+  }
 }
