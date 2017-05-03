@@ -48,14 +48,16 @@ function filterProjects(boards) {
 }
 
 function getTags(board, tags) {
-  let j = 0;
+  var j = 0;
   for (var i in board.labelNames) {
     let tag = board.labelNames[i];
     if (tag !== "") {
       (tags[tag]) ? tags[tag].boards.push(board) : tags[tag] = {boards: [board], color: selectColor(j)};
       j++;
+      j = j % 10;
     }
   }
+  (tags['Any']) ? tags['Any'].boards.push(board) : tags['Any'] = {boards: [board], color: selectColor(j)};
 }
 
 function selectColor(i){
